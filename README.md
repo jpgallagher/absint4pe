@@ -1,8 +1,14 @@
 # absint4pe
 Abstract interpreters designed to be specialised
 
-The interpreter absint.pl is written in Ciao Prolog.
+## Files
+
+The interpreter for Horn clauses absint.pl is written in Ciao Prolog.
 It implements an abstract interpreter for a property-based abstraction.
+
+absint.pe.ann is the version of absint.pl annotated for specialisation with Logen.
+
+absint.sh is a shell script for running the specialiser with respect to a program and a set of properties.
 
 ## Requirements
 
@@ -16,3 +22,7 @@ from git repository with `./ciao-boot.sh local-install`)
    (`ciao get github.com/jfmc/ciao_yices`)
 2. [CHCLibs](https://github.com/bishoksan/chclibs)
    (`ciao get github.com/bishoksan/chclibs`)
+
+## Specialisation
+
+The interpreter is designed to be specialises with [Logen](https://github.com/jfmc/logen).
