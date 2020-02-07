@@ -1,0 +1,163 @@
+:-module(absint,_).
+:-use_module(chclibs(yices2_sat)).
+:-use_module(chclibs(canonical)).
+:-use_module(library(terms_vars)).
+:-use_module(chclibs(linearize)).
+:-use_module(chclibs(program_loader)).
+:-use_module(ciao_yices(ciao_yices_2)).
+:-use_module(library(read_from_string),[read_from_atom/2]).
+logen(go/1,go(A)) :-
+        logen(call,read_from_atom(A,B)),
+        logen(call,numbervars(B,0,_)),
+        logen(unfold,instanceOf(B,C)),
+        logen(unfold,program(D)),
+        logen(unfold,proplist(E)),
+        logen(call,yices_init),
+        logen(memo,solve(C,[],E,D)).
+logen(solve/4,solve(A,B,C,D)) :-
+        logen(call,member(hornClause(E,F,G),D)),
+        logen(unfold,instanceOf(hornClause(E,F,G),hornClause(A,H,I))),
+        logen(unfold,delta_A(A,H,I,B,J,C)),
+        logen(unfold,delta(H)),
+        logen(unfold,solveConj(I,J,C,D)).
+logen(solveConj/4,solveConj([],[],_,_)).
+logen(solveConj/4,solveConj([C|D],[E|F],A,B)) :-
+        logen(memo,solve(C,E,A,B)),
+        logen(unfold,solveConj(D,F,A,B)).
+logen(delta/1,delta([])).
+logen(delta/1,delta([A|B])) :-
+        logen(rescall,call(A)),
+        logen(unfold,delta(B)).
+logen(delta_A/6,delta_A(A,B,C,D,E,F)) :-
+        logen(unfold,currentProps(A,D,F,G,H)),
+        logen(call,melt((G,H),(A,I))),
+        logen(call,append(B,I,J)),
+        logen(unfold,checkSat(J)),
+        logen(unfold,bodyVersions(C,J,F,E)).
+logen(argEqs/4,argEqs(A,B,C,D)) :-
+        logen(call,A=..[E|F]),
+        logen(call,B=..[E|G]),
+        logen(unfold,eqList(F,G,D,C)).
+logen(eqList/4,eqList([],[],A,A)).
+logen(eqList/4,eqList([B|C],[D|E],[B=D|F],A)) :-
+        logen(unfold,eqList(C,E,F,A)).
+logen(currentProps/5,currentProps(A,B,C,D,E)) :-
+        logen(call,functor(A,F,G)),
+        logen(unfold,getPredProps(F/G,C,H)),
+        logen(unfold,selectIds(B,H,I)),
+        logen(unfold,intersectionConstraints(I,E)),
+        logen(call,functor(D,F,G)),
+        logen(call,numbervars(D,0,_)).
+logen(getPredProps/3,getPredProps(C/D,A,B)) :-
+        logen(call,member(pred(C/D,B),A)).
+logen(getPredProps/3,getPredProps(B/C,A,[])) :-
+        not(logen(call,member(pred(B/C,_),A))).
+logen(bodyVersions/4,bodyVersions([],_,_,[])).
+logen(bodyVersions/4,bodyVersions([C|D],A,B,[E|F])) :-
+        logen(unfold,abstractVersion(C,A,B,E)),
+        logen(unfold,bodyVersions(D,A,B,F)).
+logen(abstractVersion/4,abstractVersion(A,B,C,D)) :-
+        logen(call,copy_term((A,B),(E,F))),
+        logen(call,varset(E,G)),
+        logen(call,numbervars((G,F),0,_)),
+        logen(unfold,predicate_abstract(E,F,C,D)).
+logen(predicate_abstract/4,predicate_abstract(A,B,C,D)) :-
+        logen(call,functor(A,E,F)),
+        logen(unfold,predAbstract(E/F,B,C,D)).
+logen(predAbstract/4,predAbstract(D/E,A,B,C)) :-
+        logen(call,member(pred(D/E,F),B)),
+        logen(call,!),
+        logen(unfold,selectProps(F,A,C)).
+logen(predAbstract/4,predAbstract(_,_,_,[])).
+logen(selectProps/3,selectProps([],_,[])).
+logen(selectProps/3,selectProps([C-D|B],A,[D|E])) :-
+        logen(unfold,entails(A,C)),
+        logen(call,!),
+        logen(unfold,selectProps(B,A,E)).
+logen(selectProps/3,selectProps([_|C],A,B)) :-
+        logen(unfold,selectProps(C,A,B)).
+logen(checkSat/1,checkSat(A)) :-
+        logen(call,copy_term(A,B)),
+        logen(call,varset(B,C)),
+        logen(unfold,linearConstraints(B,D,_)),
+        logen(call,numbervars(C,0,_)),
+        logen(call,yices_vars(C,real,E)),
+        logen(call,yices_sat(D,E)).
+logen(entails/2,entails(A,B)) :-
+        logen(call,melt([A,neg(B)],C)),
+        logen(call,varset(C,D)),
+        logen(call,numbervars(D,0,_)),
+        logen(call,yices_vars(D,real,E)),
+        logen(call,yices_unsat(C,E)).
+logen(selectIds/3,selectIds([A|B],[D-A|C],[D|E])) :-
+        logen(call,!),
+        logen(unfold,selectIds(B,C,E)).
+logen(selectIds/3,selectIds([neg(B)|A],[D-B|C],[neg(D)|E])) :-
+        logen(call,!),
+        logen(unfold,selectIds(A,C,E)).
+logen(selectIds/3,selectIds([B|C],[_-E|D],A)) :-
+        logen(call,B@>E),
+        logen(call,!),
+        logen(unfold,selectIds([B|C],D,A)).
+logen(selectIds/3,selectIds([neg(C)|B],[_-E|D],A)) :-
+        logen(call,C@>E),
+        logen(call,!),
+        logen(unfold,selectIds([neg(C)|B],D,A)).
+logen(selectIds/3,selectIds([_|C],A,B)) :-
+        logen(unfold,selectIds(C,A,B)).
+logen(selectIds/3,selectIds([],_,[])).
+logen(intersectionConstraints/2,intersectionConstraints([],[])).
+logen(intersectionConstraints/2,intersectionConstraints([neg(B)|A],[neg(B)|C])) :-
+        logen(call,!),
+        logen(unfold,intersectionConstraints(A,C)).
+logen(intersectionConstraints/2,intersectionConstraints([B|C],A)) :-
+        logen(unfold,intersectionConstraints(C,D)),
+        logen(call,append(B,D,A)).
+logen(linearConstraints/3,linearConstraints([],[],[])).
+logen(linearConstraints/3,linearConstraints([neg(B)|A],[neg(D)|C],[neg(A)|E])) :-
+        logen(call,!),
+        logen(unfold,linearConstraints(B,D,_)),
+        logen(unfold,linearConstraints(A,C,E)).
+logen(linearConstraints/3,linearConstraints([B|C],[B|D],A)) :-
+        logen(call,linear_constraint(B)),
+        logen(call,!),
+        logen(unfold,linearConstraints(C,D,A)).
+logen(linearConstraints/3,linearConstraints([B|C],A,[B|D])) :-
+        logen(unfold,linearConstraints(C,A,D)).
+logen(program/1,program(A)) :-
+        findall(hornClause(B,C,D),(logen(unfold,hornClause(B,C,D)),logen(call,numbervars((B,C,D),0,_))),A).
+logen(predCalls/2,predCalls([],[])).
+logen(predCalls/2,predCalls([A|B],[D/E|C])) :-
+        logen(call,functor(A,D,E)),
+        logen(unfold,predCalls(B,C)).
+logen(proplist/1,proplist(A)) :-
+        logen(unfold,proplist_k(A,_)).
+logen(proplist_k/2,proplist_k(A,B)) :-
+        findall((D,E),(logen(unfold,prop(D,E)),logen(call,numbervars((D,E),0,_))),C),
+        logen(unfold,makePropList(C,0,B,[],A)).
+logen(makePropList/5,makePropList([],A,A,B,B)).
+logen(makePropList/5,makePropList([(F,G)|E],A,B,C,D)) :-
+        logen(call,functor(F,H,I)),
+        logen(call,I>0),
+        logen(call,!),
+        logen(unfold,addProperty(H/I,G,A,J,C,K)),
+        logen(unfold,makePropList(E,J,B,K,D)).
+logen(makePropList/5,makePropList([_|E],A,B,C,D)) :-
+        logen(unfold,makePropList(E,A,B,C,D)).
+logen(addProperty/6,addProperty(D/E,A,B,C,[pred(D/E,G)|F],[pred(D/E,H)|F])) :-
+        logen(call,!),
+        logen(unfold,addPredProps(G,A,B,C,H)).
+logen(addProperty/6,addProperty(D/E,A,B,C,[F|G],[F|H])) :-
+        logen(unfold,addProperty(D/E,A,B,C,G,H)).
+logen(addProperty/6,addProperty(D/E,A,B,C,[],[pred(D/E,[A-B])])) :-
+        logen(call,C is B+1).
+logen(addPredProps/5,addPredProps([],A,B,C,[A-B])) :-
+        logen(call,C is B+1).
+logen(addPredProps/5,addPredProps([E-F|D],A,B,C,[E-F|G])) :-
+        logen(unfold,addPredProps(D,A,B,C,G)).
+logen(instanceOf/2,instanceOf(A,B)) :-
+        logen(call,melt(A,B)).
+:- filter
+        go(nonvar).
+:- filter
+        solve(nonvar,static,static,static).
