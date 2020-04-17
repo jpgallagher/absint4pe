@@ -25,4 +25,4 @@ from git repository with `./ciao-boot.sh local-install`)
 
 ## Specialisation
 
-The interpreter is designed to be specialises with [Logen](https://github.com/jfmc/logen).
+The interpreter is designed to be specialised with [Logen](https://github.com/jfmc/logen).
