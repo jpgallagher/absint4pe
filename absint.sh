@@ -10,9 +10,9 @@ PE="/Users/jpg/Research/LP/clptools/predabs/pe"
 f=`basename $1`
 
 # generate the property file
-$LIB/qa "$1" -query "$2" -o "$f".qa.pl
-$LIB/thresholds1 -prg "$f".qa.pl -a -o wut.props
-$LIB/cpascc -prg "$f".qa.pl -cex "traceterm.out"  -withwut -wfunc h79 -o "$f".qa.cha.pl
+chclibs-qa "$1" -query "$2" -o "$f".qa.pl
+chclibs-thresholds1 -prg "$f".qa.pl -a -o wut.props
+chclibs-cpascc -prg "$f".qa.pl -cex "traceterm.out"  -withwut -wfunc h79 -o "$f".qa.cha.pl
 $LIB/insertProps -prg "$1" -props "$f".qa.cha.pl -o "$f".sp
 $PE/props1 -prg "$f".sp -entry "$2" -o "$f".props
 
