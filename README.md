@@ -6,7 +6,7 @@ Abstract interpreters designed to be specialised
 The interpreter for Horn clauses absint.pl is written in Ciao Prolog.
 It implements an abstract interpreter for a property-based abstraction.
 
-absint.pe.ann is the version of absint.pl annotated for specialisation with Logen.
+absint.pl.ann is the version of absint.pl annotated for specialisation with Logen.
 
 absint.sh is a shell script for running the specialiser with respect to a program and a set of properties.
 
