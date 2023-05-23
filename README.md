@@ -1,28 +1,19 @@
-# absint4pe
-Abstract interpreters designed to be specialised
+# Generating linear clauses from big-step semantics
 
-## Files
+## General requirements - Ciao Prolog with Ciao bundle logen and chclibs. 
 
-The interpreter for Horn clauses absint.pl is written in Ciao Prolog.
-It implements an abstract interpreter for a property-based abstraction.
+*  ciao get github.com/jfmc/logen
+*  ciao get github.com/bishoksan/chclibs
 
-absint.pe.ann is the version of absint.pl annotated for specialisation with Logen.
+## Compile the following files with ciaoc.
 
-absint.sh is a shell script for running the specialiser with respect to a program and a set of properties.
+*  renamePreds.pl, clp2logen.pl
 
-## Requirements
+## Files for semantics based translation
 
-[Ciao](https://github.com/ciao-lang/ciao) 1.16 or newer (installed
-from git repository with `./ciao-boot.sh local-install`)
+*  linearSolve.pl - linear interpreter for Horn clauses 
+*  linearSolve.pl.ann - Logen-annotated version of interpreter
+*  renamePreds.pl - applies the renaming to the Logen output
+*  big2small.sh - script takes file of input clauses and entry goal. Generates linear clauses file 
 
-## Dependencies
-
-1. [Ciao bindings](https://github.com/jfmc/ciao_yices) for
-   [Yices SMT solver](https://yices.csl.sri.com/)
-   (`ciao get github.com/jfmc/ciao_yices`)
-2. [CHCLibs](https://github.com/bishoksan/chclibs)
-   (`ciao get github.com/bishoksan/chclibs`)
-
-## Specialisation
-
-The interpreter is designed to be specialises with [Logen](https://github.com/jfmc/logen).
+Arguments can be eliminated from the output of big2small.sh using the elimargs.sh script (see bigstep)
