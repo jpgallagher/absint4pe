@@ -22,31 +22,32 @@ eval(div(E1,E2),St0,St2,V) :-
 	eval(E1,St0,St1,V1),
 	eval(E2,St1,St2,V2),
 	V = V1/V2.
-eval(E1>E2,St0,St2,V) :-
+	
+controlExpr(E1>E2,St0,St2,V) :-
 	eval(E1,St0,St1,V1),
 	eval(E2,St1,St2,V2),
 	gt(V1,V2,V).
-eval(E1<E2,St0,St2,V) :-
+controlExpr(E1<E2,St0,St2,V) :-
 	eval(E1,St0,St1,V1),
 	eval(E2,St1,St2,V2),
 	lt(V1,V2,V).
-eval(E1>=E2,St0,St2,V) :-
+controlExpr(E1>=E2,St0,St2,V) :-
 	eval(E1,St0,St1,V1),
 	eval(E2,St1,St2,V2),
 	gte(V1,V2,V).
-eval(E1=<E2,St0,St2,V) :-
+controlExpr(E1=<E2,St0,St2,V) :-
 	eval(E1,St0,St1,V1),
 	eval(E2,St1,St2,V2),
 	lte(V1,V2,V).
-eval(E1==E2,St0,St2,V) :-
+controlExpr(E1==E2,St0,St2,V) :-
 	eval(E1,St0,St1,V1),
 	eval(E2,St1,St2,V2),
 	eq(V1,V2,V).
-eval(logicaland(E1,E2),St0,St2,V) :-
+controlExpr(logicaland(E1,E2),St0,St2,V) :-
 	eval(E1,St0,St1,V1),
 	eval(E2,St1,St2,V2),
 	V is V1/\V2.
-eval(not(E),St0,St1,V) :-
+controlExpr(not(E),St0,St1,V) :-
 	eval(E,St0,St1,V1),
 	negate(V1,V).
 
@@ -63,10 +64,10 @@ bigstep(seq(S1,S2),St,St2) :-
 	bigstep(S1,St,St1),
 	bigstep(S2,St1,St2).
 bigstep(ifthenelse(E,S1,_S2),St,St2) :-
-	eval(E,St,St1,1),
+	controlExpr(E,St,St1,1),
 	bigstep(S1,St1,St2).
 bigstep(ifthenelse(E,_S1,S2),St,St2) :-
-	eval(E,St,St1,0),
+	controlExpr(E,St,St1,0),
 	bigstep(S2,St1,St2).
 bigstep(while(E,S1),St,St1) :-
 	bigstep(ifthenelse(E,seq(S1,while(E,S1)),skip),St,St1).
@@ -121,3 +122,13 @@ eq(X,Y,0) :-
 	
 negate(true,false).
 negate(false,true).
+
+leaf(bigstep(skip,_,_)).
+leaf(bigstep(asg(_,_),_,_)).
+leaf(controlExpr(_,_,_,_)).
+
+nonLeaf(bigstep(seq(_,_),_,_)).
+nonLeaf(bigstep(ifthenelse(_,_,_),_,_)).
+nonLeaf(bigstep(while(_,_),_,_)).
+nonLeaf(bigstep(for(_,_,_,_),_,_)).
+
