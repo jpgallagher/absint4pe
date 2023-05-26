@@ -13,12 +13,14 @@ smallStep(A,[]) :-
 smallStep(bigstep(A,St0,St1),As1) :-
 	nonLeaf(bigstep(A,St0,St1)),
 	clpClause(K,bigstep(A,St0,St1),[B|Bs]),
-	nextStep(B,K,Bs,As1).
+	evalConditions([B|Bs],[B1|Bs1]),
+	nextStep([B1|Bs1],K,As1).
 	
-nextStep(A,_,Bs,Bs) :-
+nextStep([A|Bs],_,Bs1) :-
 	leaf(A),
+	evalConditions(Bs,Bs1),
 	smallStep(A,[]).
-nextStep(bigstep(A,St0,St1),K,Bs,[H]) :-
+nextStep([bigstep(A,St0,St1)|Bs],K,[H]) :-
 	nonLeaf(bigstep(A,St0,St1)),
 	smallStep(bigstep(A,St0,St1),[bigstep(U,V,W)]),
 	tryFold(K,H,[bigstep(U,V,W)|Bs]).
@@ -76,6 +78,7 @@ constraint(_\=_).
 
 %% big step semantics for While
 
+/*
 clpClause(0,eval(var(A),B,B,C),[find(B,A,C)]).
 clpClause(1,eval(cns(nat(A)),B,B,A),[]).
 clpClause(2,eval(add(A,B),C,D,E),[eval(A,C,F,G),eval(B,F,D,H),E=G+H]).
@@ -120,11 +123,30 @@ clpClause(40,nonLeaf(bigstep(seq(A,B),C,D)),[]).
 clpClause(41,nonLeaf(bigstep(ifthenelse(A,B,C),D,E)),[]).
 clpClause(42,nonLeaf(bigstep(while(A,B),C,D)),[]).
 clpClause(43,nonLeaf(bigstep(for(A,B,C,D),E,F)),[]).
+*/
+
+%% big step semantics for Lambda
+
+clpClause(0,bigstep(val(A),B,A),[]).
+clpClause(1,bigstep(var(A),B,C),[find(B,A,C)]).
+clpClause(2,bigstep(lam(A,B),C,clo(A,B,C)),[]).
+clpClause(3,bigstep(app(A,B),C,D),[bigstep(A,C,clo(E,F,G)),bigstep(app2(clo(E,F,G),B),C,D)]).
+clpClause(4,bigstep(app2(clo(A,B,C),D),E,F),[bigstep(D,E,G),save(A,G,C,H),bigstep(B,H,F)]).
+clpClause(5,find([(A,B)|C],A,B),[]).
+clpClause(6,find([(A,B)|C],D,E),[D\==A,find(C,D,E)]).
+clpClause(7,save(A,B,[(A,C)|D],[(A,E)|D]),[E=B]).
+clpClause(8,save(A,B,[(C,D)|E],[(C,D)|F]),[A\==C,save(A,B,E,F)]).
+clpClause(9,save(A,B,[],[(A,C)]),[C=B]).
+clpClause(10,leaf(bigstep(var(A),B,C)),[]).
+clpClause(11,leaf(bigstep(val(A),B,C)),[]).
+clpClause(12,leaf(bigstep(lam(A,B),C,D)),[]).
+clpClause(13,nonLeaf(bigstep(app(A,B),C,D)),[]).
 
 test(S) :-
 	exCode(C),
 	run([bigstep(C,[(x,5),(y,2),(z,3)],S)]).
 	
-exCode(seq(seq(asg(var(x),add(var(z),var(y))),asg(var(z),var(x))),asg(var(y),cns(nat(7))))).
-%exCode(while(var(x)>cns(nat(0)),asg(var(x),sub(var(x),cns(nat(1)))))).
+%exCode(seq(seq(asg(var(x),add(var(z),var(y))),asg(var(z),var(x))),asg(var(y),cns(nat(7))))).
+exCode(while(var(x)>cns(nat(0)),asg(var(x),sub(var(x),cns(nat(1)))))).
+
 
