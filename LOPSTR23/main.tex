@@ -5,6 +5,7 @@
 \usepackage{amsmath} 
 
 \pagenumbering{arabic}
+\usepackage{lineno}
 
 \newcommand{\integ}{{\sf int}}
 \newcommand{\listint}{{\sf listint}}
@@ -103,6 +104,14 @@
 \newcommand{\FOR}[4]{\keyword{for} \,(#1\,#2\,#3)\, #4}
 \newcommand{\WHILE}[2]{\keyword{while} \,(#1)\, #2}
 
+\newcommand{\VAR}[1]{\keyword{var}(#1)}
+\newcommand{\VAL}[1]{\keyword{val}(#1)}
+\newcommand{\LAM}[2]{\keyword{lam} (#1,#2)}
+\newcommand{\APP}[2]{\keyword{app} (#1,#2)}
+\newcommand{\APPP}[2]{\keyword{app2} (#1,#2)}
+\newcommand{\CLO}[3]{\keyword{clo} (#1,#2,#3)}
+
+
 
 \usepackage{listings} 
 \usepackage{courier}
@@ -124,7 +133,7 @@
   breaklines=true,
   language=C,
   xleftmargin=1em,
-  morekeywords={if,then,else,do,return,length,let,seq,asg,function,call,ret,ifthenelse,block,skip},
+  morekeywords={if,then,else,do,return,length,let,seq,asg,function,call,ret,ifthenelse,block,skip,app,lam,app2,var,val,clo},
   deletekeywords={static,struct,call},
   columns=[l]flexible
 }
@@ -170,6 +179,8 @@ IMDEA Software Institute, Madrid, Spain}
 \input{abstract}
 
 \pagestyle{plain}
+
+\linenumbers
 \pagestyle{myheadings}
 
 \section{Introduction}
@@ -499,8 +510,7 @@ premises.  However, this could potentially be built into the interpreter.
 \begin{tabular}{l}
 \begin{lstlisting}
 smallStep(skip,A,A,[]).
-smallStep(asg(var(D),C),A,B,[]) :- 
-    eval3(C,A,E,F),eval4(D,F,E,B).
+smallStep(asg(var(D),C),A,B,[]) :- eval3(C,A,E,F),eval4(D,F,E,B).
 smallStep(seq(C,D),A,B,[bigstep(D,E,B)]) :-
     leaf5(bigstep(C,A,E)), smallStep(C,A,E,[]).
 smallStep(seq(C,D),A,B,[bigstep(seq(F,D),E,B)]) :-
@@ -597,8 +607,12 @@ on an interpreter.  Ager \cite{Ager04} defines a transformation from L-attribute
 also a direct transformation rather than based on an explicit interpreter.  
 
 \bibliographystyle{plain}
-%\bibliographystyle{splncs}
 \bibliography{refs}
 
+\newpage
+\appendix
+\input{appendix1}
+\newpage
+\input{appendix2}
 
 \end{document}
